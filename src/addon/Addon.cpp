@@ -4,6 +4,9 @@
 
 #include "imgui/imgui.h"
 
+#include <Windows.h>
+#include <winuser.h>
+
 std::filesystem::path Addon::AddonPath;
 std::filesystem::path Addon::SettingsPath;
 
@@ -86,23 +89,30 @@ void Addon::get_item_infos()
     // PostMessage(m_window, WM_LBUTTONUP, MK_SHIFT, pos);
     // PostMessage(m_window, WM_KEYUP, VK_SHIFT, Utils::GetLParam(VK_SHIFT, false));
 
-    INPUT inputs[4] = {};
+    INPUT inputs[6] = {};
     ZeroMemory(inputs, sizeof(inputs));
 
     inputs[0].type = INPUT_KEYBOARD;
-    inputs[0].ki.wVk = VK_SHIFT;
+    inputs[0].ki.wVk = VK_MENU;
+    inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
 
-    inputs[1].type = INPUT_MOUSE;
-    inputs[1].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-    inputs[1].mi.dwExtraInfo = GetMessageExtraInfo();
+    inputs[1].type = INPUT_KEYBOARD;
+    inputs[1].ki.wVk = VK_SHIFT;
 
     inputs[2].type = INPUT_MOUSE;
-    inputs[2].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+    inputs[2].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
     inputs[2].mi.dwExtraInfo = GetMessageExtraInfo();
 
-    inputs[3].type = INPUT_KEYBOARD;
-    inputs[3].ki.wVk = VK_SHIFT;
-    inputs[3].ki.dwFlags = KEYEVENTF_KEYUP;
+    inputs[3].type = INPUT_MOUSE;
+    inputs[3].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+    inputs[3].mi.dwExtraInfo = GetMessageExtraInfo();
+
+    inputs[4].type = INPUT_KEYBOARD;
+    inputs[4].ki.wVk = VK_SHIFT;
+    inputs[4].ki.dwFlags = KEYEVENTF_KEYUP;
+
+    inputs[5].type = INPUT_KEYBOARD;
+    inputs[5].ki.wVk = VK_MENU;
 
     UINT uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
     if (uSent != ARRAYSIZE(inputs))
