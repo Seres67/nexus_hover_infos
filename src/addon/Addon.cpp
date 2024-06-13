@@ -7,7 +7,6 @@
 std::filesystem::path Addon::AddonPath;
 std::filesystem::path Addon::SettingsPath;
 
-bool control_down = false;
 HWND m_window = nullptr;
 
 void Addon::load(AddonAPI* aApi)
@@ -24,7 +23,9 @@ void Addon::load(AddonAPI* aApi)
     APIDefs->RegisterRender(ERenderType_Render, Addon::render);
     APIDefs->RegisterRender(ERenderType_OptionsRender, Addon::render_options);
 
-    APIDefs->RegisterKeybindWithString("KB_HOVER_INFOS", Addon::process_keybindings, "ALT+D");
+    APIDefs->RegisterWndProc(Addon::wndproc);
+
+    APIDefs->RegisterKeybindWithString("KB_HOVER_INFOS", Addon::process_keybindings, "C");
 
     AddonPath = APIDefs->GetAddonDirectory(m_addon_name.data());
     SettingsPath = APIDefs->GetAddonDirectory((std::string(m_addon_name.data()) + "/settings.json").c_str());
@@ -64,6 +65,13 @@ void Addon::process_keybindings(const char* aIdentifier)
     {
         get_item_infos();
     }
+}
+
+unsigned int Addon::wndproc(HWND hWnd, unsigned int message, unsigned __int64 wParam, LPARAM lParam)
+{
+    if (!m_window)
+        m_window = hWnd;
+    return message;
 }
 
 void Addon::get_item_infos()
