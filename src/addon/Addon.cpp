@@ -81,9 +81,32 @@ void Addon::get_item_infos()
     APIDefs->Log(ELogLevel_DEBUG, "Hover Infos", "Getting item infos");
     auto pos = MAKELPARAM((short)ImGui::GetIO().MousePos.x, (short)ImGui::GetIO().MousePos.y);
 
-    // PostMessage(m_window, WM_SYSKEYUP, VK_MENU, Utils::GetLParam(VK_MENU, false));
-    PostMessage(m_window, WM_KEYDOWN, VK_SHIFT, Utils::GetLParam(VK_SHIFT, true));
-    PostMessage(m_window, WM_LBUTTONDOWN, MK_SHIFT | MK_LBUTTON, pos);
-    PostMessage(m_window, WM_LBUTTONUP, MK_SHIFT, pos);
-    PostMessage(m_window, WM_KEYUP, VK_SHIFT, Utils::GetLParam(VK_SHIFT, false));
+    // PostMessage(m_window, WM_KEYDOWN, VK_SHIFT, Utils::GetLParam(VK_SHIFT, true));
+    // PostMessage(m_window, WM_LBUTTONDOWN, MK_SHIFT | MK_LBUTTON, pos);
+    // PostMessage(m_window, WM_LBUTTONUP, MK_SHIFT, pos);
+    // PostMessage(m_window, WM_KEYUP, VK_SHIFT, Utils::GetLParam(VK_SHIFT, false));
+
+    INPUT inputs[4] = {};
+    ZeroMemory(inputs, sizeof(inputs));
+
+    inputs[0].type = INPUT_KEYBOARD;
+    inputs[0].ki.wVk = VK_SHIFT;
+
+    inputs[1].type = INPUT_MOUSE;
+    inputs[1].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+    inputs[1].mi.dwExtraInfo = GetMessageExtraInfo();
+
+    inputs[2].type = INPUT_MOUSE;
+    inputs[2].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+    inputs[2].mi.dwExtraInfo = GetMessageExtraInfo();
+
+    inputs[3].type = INPUT_KEYBOARD;
+    inputs[3].ki.wVk = VK_SHIFT;
+    inputs[3].ki.dwFlags = KEYEVENTF_KEYUP;
+
+    UINT uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+    if (uSent != ARRAYSIZE(inputs))
+    {
+        APIDefs->Log(ELogLevel_DEBUG, "Hover Infos", "SendInput failed");
+    }
 }
