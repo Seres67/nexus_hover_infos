@@ -1,5 +1,6 @@
 #include "addon/Addon.hpp"
 
+#include <thread>
 #include <addon/Utils.hpp>
 
 #include "imgui/imgui.h"
@@ -74,6 +75,10 @@ unsigned int Addon::wndproc(HWND hWnd, unsigned int message, unsigned __int64 wP
 {
     if (!m_window)
         m_window = hWnd;
+    char log[1024] = {};
+    sprintf_s(log, "message: %d, WParam: %d, LParam: %d", message, wParam, lParam);
+    APIDefs->Log(ELogLevel_DEBUG, "Hover Infos", log);
+
     return message;
 }
 
@@ -82,41 +87,49 @@ void Addon::get_item_infos()
     if (m_window == nullptr)
         return;
     APIDefs->Log(ELogLevel_DEBUG, "Hover Infos", "Getting item infos");
-    auto pos = MAKELPARAM((short)ImGui::GetIO().MousePos.x, (short)ImGui::GetIO().MousePos.y);
-
-    // PostMessage(m_window, WM_KEYDOWN, VK_SHIFT, Utils::GetLParam(VK_SHIFT, true));
-    // PostMessage(m_window, WM_LBUTTONDOWN, MK_SHIFT | MK_LBUTTON, pos);
-    // PostMessage(m_window, WM_LBUTTONUP, MK_SHIFT, pos);
-    // PostMessage(m_window, WM_KEYUP, VK_SHIFT, Utils::GetLParam(VK_SHIFT, false));
-
-    INPUT inputs[6] = {};
-    ZeroMemory(inputs, sizeof(inputs));
-
-    inputs[0].type = INPUT_KEYBOARD;
-    inputs[0].ki.wVk = VK_MENU;
-    inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
-
-    inputs[1].type = INPUT_KEYBOARD;
-    inputs[1].ki.wVk = VK_SHIFT;
-
-    inputs[2].type = INPUT_MOUSE;
-    inputs[2].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-    inputs[2].mi.dwExtraInfo = GetMessageExtraInfo();
-
-    inputs[3].type = INPUT_MOUSE;
-    inputs[3].mi.dwFlags = MOUSEEVENTF_LEFTUP;
-    inputs[3].mi.dwExtraInfo = GetMessageExtraInfo();
-
-    inputs[4].type = INPUT_KEYBOARD;
-    inputs[4].ki.wVk = VK_SHIFT;
-    inputs[4].ki.dwFlags = KEYEVENTF_KEYUP;
-
-    inputs[5].type = INPUT_KEYBOARD;
-    inputs[5].ki.wVk = VK_MENU;
-
-    UINT uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
-    if (uSent != ARRAYSIZE(inputs))
+    std::thread([]()
     {
-        APIDefs->Log(ELogLevel_DEBUG, "Hover Infos", "SendInput failed");
-    }
+        // Press keys and wait for chat to open
+        INPUT inputs[4] = {};
+        ZeroMemory(inputs, sizeof(inputs));
+
+        inputs[0].type = INPUT_KEYBOARD;
+        inputs[0].ki.wVk = VK_MENU;
+        inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[1].type = INPUT_KEYBOARD;
+        inputs[1].ki.wVk = 'D';
+        inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[2].type = INPUT_KEYBOARD;
+        inputs[2].ki.wVk = VK_SHIFT;
+
+        inputs[3].type = INPUT_MOUSE;
+        inputs[3].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+
+        UINT uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+        if (uSent != ARRAYSIZE(inputs))
+        {
+            APIDefs->Log(ELogLevel_DEBUG, "Hover Infos", "SendInput failed");
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(25));
+
+        // Release keys
+        INPUT release_inputs[2] = {};
+        ZeroMemory(release_inputs, sizeof(release_inputs));
+
+        release_inputs[0].type = INPUT_MOUSE;
+        release_inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+
+        release_inputs[1].type = INPUT_KEYBOARD;
+        release_inputs[1].ki.wVk = VK_SHIFT;
+        release_inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        uSent = SendInput(ARRAYSIZE(release_inputs), release_inputs, sizeof(INPUT));
+        if (uSent != ARRAYSIZE(release_inputs))
+        {
+            APIDefs->Log(ELogLevel_DEBUG, "Hover Infos", "SendInput failed");
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }).detach();
 }
