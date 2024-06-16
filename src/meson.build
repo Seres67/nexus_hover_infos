@@ -1,1 +1,0 @@
-sources = files('main.cpp', 'addon/Shared.cpp', 'addon/Addon.cpp', 'addon/Utils.cpp')

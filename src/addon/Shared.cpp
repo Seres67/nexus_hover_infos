@@ -1,4 +1,4 @@
-#include "include/addon/Shared.hpp"
+#include "addon/Shared.hpp"
 AddonAPI *APIDefs = nullptr;
 
 Mumble::Data *MumbleLink = nullptr;
